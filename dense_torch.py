@@ -31,7 +31,7 @@ class BottleneckBlock(nn.Module):
         out = self.conv2(self.relu(self.bn2(out)))
         if self.dropRate > 0:
             out = F.dropout(out, p = self.dropRate, inplace = False, training = self.training)
-        return torch.cat([x,out] 1)
+        return torch.cat([x,out], 1)
 class TransitionBlock(nn.Module):
     def __init__(self,in_planes, out_planes, dropRate = 0.0):
         super(TransitionBlock, self).__init__()
@@ -52,15 +52,15 @@ class DenseBlock(nn.Module):
         layers = []
         for i in range(nb_layers):
             layers.append(block(in_planes+i*growth_rate, growth_rate,dropRate))
-        return nn.Sequiential(*layers)
+        return nn.Sequential(*layers)
     def forward(self,x):
         return self.layer(x)
 class DenseNet3(nn.Module):
     def __init__(self, depth, num_classes, growth_rate=12, reduction = 0.5, bottleneck =True, dropRate = 0.0):
         super(DenseNet3,self).__init__()
         in_planes = 2 * growth_rate
-        n = (depth = 4) / 3
-        if bottleneck:
+        n = (depth - 4) / 3
+        if bottleneck == True:
             n /= 2
             block = BottleneckBlock
         else:
@@ -95,12 +95,12 @@ class DenseNet3(nn.Module):
                 m.bias.data.zero_()
             elif isinstance(m, nn.Linear):
                 m.bias.data.zero_()
-        def forward(self,x):
-            out = self.conv1(x)
-            out = self.trans1(self.block1(out))
-            out = self.trans2(self.block2(out))
-            out = self.block3(out)
-            out = self.relu(self.bn1(out))
-            out = F.avg_pool2d(out, 8)
-            out = out.view(-1,self.in_planes)
-            return self.fc(out)
+    def forward(self,x):
+        out = self.conv1(x)
+        out = self.trans1(self.block1(out))
+        out = self.trans2(self.block2(out))
+        out = self.block3(out)
+        out = self.relu(self.bn1(out))
+        out = F.avg_pool2d(out, 8)
+        out = out.view(-1,self.in_planes)
+        return self.fc(out)
